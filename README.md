@@ -1,4 +1,4 @@
-# 🦄 AI Agent: The Next-Gen Life OS
+# 🌌 AETHER: The Next-Gen Life OS
 
 > **Your personal AI companion for productivity and financial clarity.**  
 > *Experience the power of an intelligent Task Manager fused with a seamless Finance Tracker, all wrapped in a premium Obsidian-Glass aesthetic.*
@@ -105,6 +105,3 @@ This major update transforms the app from a simple Task Manager into a comprehen
 *   [ ] **Voice Input**: Add tasks by speaking.
 *   [ ] **Financial Graphs**: Visual charts for monthly spending.
 *   [ ] **Telegram Integration**: Add tasks via bot.
-
----
-*Built with ❤️ by Antigravity*

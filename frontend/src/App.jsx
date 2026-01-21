@@ -252,8 +252,8 @@ function App() {
       transition={{ duration: 0.5 }}
     >
       <header className="header">
-        <div className="logo-text">
-          <span style={{ color: '#60a5fa' }}>AI</span> Agent.
+        <div className="logo-text" style={{ fontFamily: '"Outfit", sans-serif', letterSpacing: '0.05em' }}>
+          AETHER<span style={{ color: '#60a5fa' }}>.</span>
         </div>
         <div className="user-profile">
           <motion.div
