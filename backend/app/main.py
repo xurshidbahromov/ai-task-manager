@@ -9,8 +9,9 @@ load_dotenv()
 from app.api.health import router as health_router
 from app.api.auth import router as auth_router
 from app.api.tasks import router as tasks_router
+from app.api.transactions import router as transactions_router
 from app.db.database import engine, Base
-from app.models import user, task
+from app.models import user, task, transaction
 
 # Initialize DB tables
 Base.metadata.create_all(bind=engine)
@@ -34,6 +35,7 @@ app.add_middleware(
 app.include_router(health_router)
 app.include_router(auth_router)
 app.include_router(tasks_router)
+app.include_router(transactions_router)
 
 @app.get("/")
 def root():

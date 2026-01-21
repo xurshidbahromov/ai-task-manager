@@ -127,6 +127,7 @@ body {
 }
 
 /* Header Section */
+/* Header Section */
 .header {
   display: flex;
   justify-content: space-between;
@@ -137,18 +138,21 @@ body {
 
 @media (max-width: 640px) {
   .header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1.5rem;
+    flex-wrap: wrap;
+    /* Changed from column to allow wrap */
+    gap: 1rem;
     margin-bottom: 2rem;
   }
 
   .header .logo-text {
     font-size: 1.5rem;
+    flex: 1;
+    /* Allow logo to take space */
   }
 
   #root {
-    padding: 2rem 1rem;
+    padding: 1rem;
+    /* Reduced padding on mobile */
   }
 }
 
@@ -169,9 +173,126 @@ body {
 
 @media (max-width: 480px) {
   .user-profile {
-    width: 100%;
-    justify-content: space-between;
+    width: auto;
+    /* Changed from 100% to auto to sit next to logo if possible */
   }
+}
+
+/* Mode Buttons */
+.mode-btn {
+  background: transparent;
+  color: #64748b;
+  border: 1px solid transparent;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mode-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.mode-btn.active {
+  background: var(--bg-card);
+  color: white;
+  border: 1px solid var(--border-glow);
+}
+
+.mode-btn.active.income {
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.mode-btn.active.expense {
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+/* Custom Number Input */
+.custom-number-input {
+  position: relative;
+  display: flex;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.custom-number-input input {
+  background: transparent;
+  color: white;
+  border: none;
+  font-size: 1.25rem;
+  font-weight: 700;
+  width: 80px;
+  text-align: center;
+  padding: 0.5rem;
+  -moz-appearance: textfield;
+}
+
+.custom-number-input input::-webkit-outer-spin-button,
+.custom-number-input input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.spinners {
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.05);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.spinners button {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 2px 6px;
+  font-size: 0.6rem;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinners button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.currency-toggle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  /* Default gray */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.add-task-form.income .currency-toggle {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.add-task-form.expense .currency-toggle {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.2);
 }
 
 /* Task Creation Bar */
@@ -192,27 +313,44 @@ body {
   border-color: var(--accent-primary);
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .add-task-form {
     flex-direction: column;
-    background: transparent;
-    border: none;
-    padding: 0;
+    align-items: stretch;
+    padding: 1rem;
     gap: 1rem;
+    background: var(--bg-card);
+    /* Ensure background is kept */
+    border: 1px solid rgba(255, 255, 255, 0.15);
   }
 
-  .add-task-form input {
-    background: var(--bg-card);
-    border: 1px solid var(--border-glow);
-    border-radius: 1rem;
-    padding: 1rem;
+  .finance-controls {
     width: 100%;
+    justify-content: space-between;
+  }
+
+  .custom-number-input {
+    flex: 1;
+  }
+
+  .custom-number-input input {
+    width: 100%;
+  }
+
+  .add-task-form input[type="text"] {
+    width: 100%;
+    min-height: 48px;
+    background: var(--bg-dark);
+    /* Contrast background for input */
+    border-radius: 0.75rem;
+    padding: 0 1rem;
   }
 
   .add-task-form .add-btn {
     width: 100%;
     justify-content: center;
     padding: 1rem;
+    margin-top: 0.5rem;
   }
 }
 

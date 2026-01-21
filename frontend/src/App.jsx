@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Check, LogOut, Loader2, Mail, Lock, Sparkles, Wand2, X, Flame, User as UserIcon } from 'lucide-react';
+import { Plus, Trash2, Check, LogOut, Loader2, Mail, Lock, Sparkles, Wand2, X, Flame, User as UserIcon, DollarSign, TrendingUp, TrendingDown, ArrowRightLeft } from 'lucide-react';
 
 const API_URL = 'http://localhost:8000';
 
@@ -17,10 +17,17 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
 
+  // Finance State
+  const [inputMode, setInputMode] = useState('task'); // 'task', 'income', 'expense'
+  const [amount, setAmount] = useState('100');
+  const [currency, setCurrency] = useState('USD');
+  const [financeSummary, setFinanceSummary] = useState({ total_income: 0, total_expense: 0, net_balance: 0 });
+
   useEffect(() => {
     if (token) {
       fetchUser();
       fetchTasks();
+      fetchFinance();
     }
   }, [token]);
 
@@ -41,6 +48,17 @@ function App() {
         headers: { Authorization: `Bearer ${token}` }
       });
       setTasks(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchFinance = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/transactions/summary`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setFinanceSummary(res.data);
     } catch (err) {
       console.error(err);
     }
@@ -80,18 +98,39 @@ function App() {
     setTasks([]);
   };
 
-  const addTask = async (e) => {
+  const handleAddItem = async (e) => {
     e.preventDefault();
-    if (!newTask.trim()) return;
-    try {
-      const res = await axios.post(`${API_URL}/tasks/`,
-        { title: newTask },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setTasks([res.data, ...tasks]);
-      setNewTask('');
-    } catch (err) {
-      console.error(err);
+    if (inputMode === 'task') {
+      if (!newTask.trim()) return;
+      try {
+        const res = await axios.post(`${API_URL}/tasks/`,
+          { title: newTask },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setTasks([res.data, ...tasks]);
+        setNewTask('');
+      } catch (err) {
+        console.error(err);
+      }
+    } else {
+      // Handle Transaction
+      if (!newTask.trim() || !amount) return;
+      try {
+        await axios.post(`${API_URL}/transactions/`,
+          {
+            amount: parseFloat(amount),
+            type: inputMode,
+            description: newTask
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setNewTask('');
+        setAmount('');
+        setInputMode('task'); // Reset to task mode
+        fetchFinance(); // Refresh summary
+      } catch (err) {
+        console.error(err);
+      }
     }
   };
 
@@ -224,19 +263,63 @@ function App() {
         </div>
       </header>
 
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+        <button
+          onClick={() => setInputMode('task')}
+          className={`mode-btn ${inputMode === 'task' ? 'active' : ''}`}
+        >
+          <Check size={16} /> Task
+        </button>
+        <button
+          onClick={() => setInputMode('income')}
+          className={`mode-btn ${inputMode === 'income' ? 'active income' : ''}`}
+        >
+          <TrendingUp size={16} /> Income
+        </button>
+        <button
+          onClick={() => setInputMode('expense')}
+          className={`mode-btn ${inputMode === 'expense' ? 'active expense' : ''}`}
+        >
+          <TrendingDown size={16} /> Expense
+        </button>
+      </div>
+
       <motion.form
         layout
-        onSubmit={addTask}
-        className="add-task-form"
+        onSubmit={handleAddItem}
+        className={`add-task-form ${inputMode}`}
       >
+        {inputMode !== 'task' && (
+          <div className="finance-controls" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button
+              type="button"
+              className="currency-toggle"
+              onClick={() => setCurrency(prev => prev === 'USD' ? 'UZS' : 'USD')}
+            >
+              {currency === 'USD' ? '$' : 'S'}
+            </button>
+            <div className="custom-number-input">
+              <input
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+              <div className="spinners">
+                <button type="button" onClick={() => setAmount(String(Number(amount) + (currency === 'USD' ? 10 : 10000)))}>▲</button>
+                <button type="button" onClick={() => setAmount(String(Number(amount) - (currency === 'USD' ? 10 : 10000)))}>▼</button>
+              </div>
+            </div>
+          </div>
+        )}
         <input
           type="text"
-          placeholder="I need to..."
+          placeholder={inputMode === 'task' ? "I need to..." : (inputMode === 'income' ? "Salary, Freelance..." : "Lunch, Uber, Rent...")}
           value={newTask}
           onChange={(e) => setNewTask(e.target.value)}
         />
         <button type="submit" className="add-btn">
-          <Plus size={20} /> Add
+          {inputMode === 'task' ? <Plus size={20} /> : <DollarSign size={20} />}
+          {inputMode === 'task' ? 'Add' : 'Save'}
         </button>
       </motion.form>
 
@@ -366,6 +449,26 @@ function App() {
                 <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.5rem', borderRadius: '1.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
                   <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#10b981' }}>{tasks.filter(t => t.is_completed).length}</div>
                   <div style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase' }}>Completed</div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: '1.5rem', background: 'rgba(0,0,0,0.2)', borderRadius: '1.5rem', padding: '1.5rem' }}>
+                <h3 style={{ fontSize: '1rem', color: '#94a3b8', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <DollarSign size={16} /> FINANCE TRACKER (USD)
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem', textAlign: 'center' }}>
+                  <div>
+                    <div style={{ color: '#10b981', fontWeight: 700 }}>+${financeSummary.total_income}</div>
+                    <div style={{ fontSize: '0.65rem', color: '#64748b' }}>INCOME</div>
+                  </div>
+                  <div>
+                    <div style={{ color: '#ef4444', fontWeight: 700 }}>-${financeSummary.total_expense}</div>
+                    <div style={{ fontSize: '0.65rem', color: '#64748b' }}>EXPENSE</div>
+                  </div>
+                  <div>
+                    <div style={{ color: '#60a5fa', fontWeight: 700 }}>${financeSummary.net_balance}</div>
+                    <div style={{ fontSize: '0.65rem', color: '#64748b' }}>BALANCE</div>
+                  </div>
                 </div>
               </div>
 

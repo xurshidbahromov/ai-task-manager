@@ -54,3 +54,25 @@ def decompose_task(title: str) -> str:
         "Document progress made",
         "Verify results and plan next step"
     ])
+
+def categorize_transaction(description: str) -> str:
+    """
+    Simulates AI categorization for financial transactions.
+    """
+    desc = description.lower()
+    
+    mapping = {
+        "food": ["lunch", "dinner", "breakfast", "cafe", "restaurant", "burger", "coffee", "grocery", "market", "food"],
+        "transport": ["uber", "taxi", "bus", "train", "flight", "gas", "fuel", "parking"],
+        "salary": ["salary", "wage", "paycheck", "freelance", "upwork", "project"],
+        "shopping": ["clothes", "shoes", "amazon", "electronics", "gift", "buy"],
+        "utilities": ["rent", "bill", "electricity", "water", "internet", "phone"],
+        "entertainment": ["movie", "cinema", "game", "netflix", "spotify", "subscription"],
+        "health": ["doctor", "pharmacy", "medicine", "gym", "sport"],
+    }
+    
+    for category, keywords in mapping.items():
+        if any(keyword in desc for keyword in keywords):
+            return category.capitalize()
+            
+    return "General"

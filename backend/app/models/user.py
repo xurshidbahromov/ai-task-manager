@@ -11,3 +11,4 @@ class User(Base):
     streak = Column(Integer, default=0)
 
     tasks = relationship("Task", back_populates="owner")
+    transactions = relationship("Transaction", back_populates="owner")
