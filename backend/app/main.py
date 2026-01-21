@@ -13,8 +13,10 @@ from app.api.transactions import router as transactions_router
 from app.db.database import engine, Base
 from app.models import user, task, transaction
 
-# Initialize DB tables
-Base.metadata.create_all(bind=engine)
+# Initialize DB tables - only for file-based SQLite, skip for /tmp (Vercel serverless)
+import os
+if "sqlite" in os.getenv("DATABASE_URL", "") and "/tmp" not in os.getenv("DATABASE_URL", ""):
+    Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="AI Task Manager API")
 
