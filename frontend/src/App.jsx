@@ -9,6 +9,7 @@ function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [user, setUser] = useState(null);
   const [tasks, setTasks] = useState([]);
+  const [transactions, setTransactions] = useState([]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [newTask, setNewTask] = useState('');
@@ -19,14 +20,14 @@ function App() {
 
   // Finance State
   const [inputMode, setInputMode] = useState('task'); // 'task', 'income', 'expense'
-  const [amount, setAmount] = useState('100');
-  const [currency, setCurrency] = useState('USD');
+  const [amount, setAmount] = useState('');
   const [financeSummary, setFinanceSummary] = useState({ total_income: 0, total_expense: 0, net_balance: 0 });
 
   useEffect(() => {
     if (token) {
       fetchUser();
       fetchTasks();
+      fetchTransactions();
       fetchFinance();
     }
   }, [token]);
@@ -48,6 +49,17 @@ function App() {
         headers: { Authorization: `Bearer ${token}` }
       });
       setTasks(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchTransactions = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/transactions/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setTransactions(res.data);
     } catch (err) {
       console.error(err);
     }
@@ -96,6 +108,7 @@ function App() {
     setToken(null);
     setUser(null);
     setTasks([]);
+    setTransactions([]);
   };
 
   const handleAddItem = async (e) => {
@@ -116,7 +129,7 @@ function App() {
       // Handle Transaction
       if (!newTask.trim() || !amount) return;
       try {
-        await axios.post(`${API_URL}/transactions/`,
+        const res = await axios.post(`${API_URL}/transactions/`,
           {
             amount: parseFloat(amount),
             type: inputMode,
@@ -124,6 +137,7 @@ function App() {
           },
           { headers: { Authorization: `Bearer ${token}` } }
         );
+        setTransactions([res.data, ...transactions]);
         setNewTask('');
         setAmount('');
         setInputMode('task'); // Reset to task mode
@@ -167,6 +181,12 @@ function App() {
       console.error(err);
     }
   };
+
+  // Combine and sort items just before rendering
+  const allItems = [
+    ...tasks.map(t => ({ ...t, itemType: 'task' })),
+    ...transactions.map(t => ({ ...t, itemType: 'transaction' }))
+  ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
   if (!token) {
     return (
@@ -263,7 +283,7 @@ function App() {
         </div>
       </header>
 
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
         <button
           onClick={() => setInputMode('task')}
           className={`mode-btn ${inputMode === 'task' ? 'active' : ''}`}
@@ -291,24 +311,19 @@ function App() {
       >
         {inputMode !== 'task' && (
           <div className="finance-controls" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <button
-              type="button"
-              className="currency-toggle"
-              onClick={() => setCurrency(prev => prev === 'USD' ? 'UZS' : 'USD')}
-            >
-              {currency === 'USD' ? '$' : 'S'}
-            </button>
             <div className="custom-number-input">
               <input
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
+                placeholder="0"
               />
               <div className="spinners">
-                <button type="button" onClick={() => setAmount(String(Number(amount) + (currency === 'USD' ? 10 : 10000)))}>▲</button>
-                <button type="button" onClick={() => setAmount(String(Number(amount) - (currency === 'USD' ? 10 : 10000)))}>▼</button>
+                <button type="button" onClick={() => setAmount(String(Number(amount || 0) + 10000))}>▲</button>
+                <button type="button" onClick={() => setAmount(String(Math.max(0, Number(amount || 0) - 10000)))}>▼</button>
               </div>
             </div>
+            <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#94a3b8' }}>SO'M</span>
           </div>
         )}
         <input
@@ -325,86 +340,123 @@ function App() {
 
       <div className="task-grid">
         <AnimatePresence mode='popLayout'>
-          {tasks.map(task => (
-            <motion.div
-              key={task.id}
-              layout
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className={`task-card ${task.is_completed ? 'completed' : ''}`}
-              style={{ flexDirection: 'column', alignItems: 'flex-start' }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                <div className="task-main">
-                  <button
-                    onClick={() => toggleTask(task.id, task.is_completed)}
-                    className={`check-btn ${task.is_completed ? 'done' : ''}`}
-                  >
-                    {task.is_completed && <Check size={16} color="white" />}
-                  </button>
-                  <div className="task-content">
-                    <div className="title">{task.title}</div>
-                    <div className="ai-meta">
-                      <span className={`priority-tag ${task.priority.toLowerCase()}`}>
-                        <Sparkles size={10} style={{ marginRight: 4 }} />
-                        {task.priority}
-                      </span>
+          {allItems.map(item => (
+            item.itemType === 'task' ? (
+              // TASK CARD
+              <motion.div
+                key={`task-${item.id}`}
+                layout
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className={`task-card ${item.is_completed ? 'completed' : ''}`}
+                style={{ flexDirection: 'column', alignItems: 'flex-start' }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                  <div className="task-main">
+                    <button
+                      onClick={() => toggleTask(item.id, item.is_completed)}
+                      className={`check-btn ${item.is_completed ? 'done' : ''}`}
+                    >
+                      {item.is_completed && <Check size={16} color="white" />}
+                    </button>
+                    <div className="task-content">
+                      <div className="title">{item.title}</div>
+                      <div className="ai-meta">
+                        <span className={`priority-tag ${item.priority.toLowerCase()}`}>
+                          <Sparkles size={10} style={{ marginRight: 4 }} />
+                          {item.priority}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  {!task.subtasks && (
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      className="magic-btn"
-                      onClick={() => decomposeTask(task.id)}
-                      title="AI Strategy"
-                    >
-                      <Wand2 size={18} />
-                    </motion.button>
-                  )}
-                  <button className="delete-btn" onClick={() => deleteTask(task.id)}>
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </div>
-
-              {task.subtasks && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  className="subtasks-container"
-                >
-                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#8b5cf6', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Sparkles size={12} /> AI STRATEGY
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    {!item.subtasks && (
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        className="magic-btn"
+                        onClick={() => decomposeTask(item.id)}
+                        title="AI Strategy"
+                      >
+                        <Wand2 size={18} />
+                      </motion.button>
+                    )}
+                    <button className="delete-btn" onClick={() => deleteTask(item.id)}>
+                      <Trash2 size={18} />
+                    </button>
                   </div>
-                  {JSON.parse(task.subtasks).map((step, idx) => (
-                    <motion.div
-                      key={idx}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: idx * 0.1 }}
-                      className="subtask-item"
-                    >
-                      <div className="subtask-dot" />
-                      {step}
-                    </motion.div>
-                  ))}
-                </motion.div>
-              )}
-            </motion.div>
+                </div>
+
+                {item.subtasks && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="subtasks-container"
+                  >
+                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#8b5cf6', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Sparkles size={12} /> AI STRATEGY
+                    </div>
+                    {JSON.parse(item.subtasks).map((step, idx) => (
+                      <motion.div
+                        key={idx}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.1 }}
+                        className="subtask-item"
+                      >
+                        <div className="subtask-dot" />
+                        {step}
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                )}
+              </motion.div>
+            ) : (
+              // TRANSACTION CARD
+              <motion.div
+                key={`trans-${item.id}`}
+                layout
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="task-card transaction-card"
+                style={{
+                  borderLeft: `3px solid ${item.type === 'income' ? '#10b981' : '#ef4444'}`,
+                  alignItems: 'center'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', width: '100%' }}>
+                  <div style={{
+                    width: 40, height: 40, borderRadius: '12px',
+                    background: item.type === 'income' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: item.type === 'income' ? '#10b981' : '#ef4444'
+                  }}>
+                    {item.type === 'income' ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
+                  </div>
+
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 600, fontSize: '1rem' }}>{item.description}</div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{item.category} • {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                  </div>
+
+                  <div style={{ fontWeight: 700, fontSize: '1.25rem', color: item.type === 'income' ? '#10b981' : '#ef4444' }}>
+                    {item.type === 'income' ? '+' : '-'}{item.amount.toLocaleString()} so'm
+                  </div>
+                </div>
+              </motion.div>
+            )
           ))}
         </AnimatePresence>
 
-        {tasks.length === 0 && (
+        {allItems.length === 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.3 }}
             style={{ textAlign: 'center', padding: '4rem' }}
           >
-            <p>Your task list is empty. Start by adding one!</p>
+            <p>Your timeline is empty. Start by adding a task or transaction!</p>
           </motion.div>
         )}
       </div>
@@ -454,20 +506,20 @@ function App() {
 
               <div style={{ marginTop: '1.5rem', background: 'rgba(0,0,0,0.2)', borderRadius: '1.5rem', padding: '1.5rem' }}>
                 <h3 style={{ fontSize: '1rem', color: '#94a3b8', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                  <DollarSign size={16} /> FINANCE TRACKER (USD)
+                  <DollarSign size={16} /> FINANCE TRACKER
                 </h3>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem', textAlign: 'center' }}>
                   <div>
-                    <div style={{ color: '#10b981', fontWeight: 700 }}>+${financeSummary.total_income}</div>
-                    <div style={{ fontSize: '0.65rem', color: '#64748b' }}>INCOME</div>
+                    <div style={{ color: '#10b981', fontWeight: 700 }}>+{financeSummary.total_income.toLocaleString()}</div>
+                    <div style={{ fontSize: '0.65rem', color: '#64748b' }}>INCOME (UZS)</div>
                   </div>
                   <div>
-                    <div style={{ color: '#ef4444', fontWeight: 700 }}>-${financeSummary.total_expense}</div>
-                    <div style={{ fontSize: '0.65rem', color: '#64748b' }}>EXPENSE</div>
+                    <div style={{ color: '#ef4444', fontWeight: 700 }}>-{financeSummary.total_expense.toLocaleString()}</div>
+                    <div style={{ fontSize: '0.65rem', color: '#64748b' }}>EXPENSE (UZS)</div>
                   </div>
                   <div>
-                    <div style={{ color: '#60a5fa', fontWeight: 700 }}>${financeSummary.net_balance}</div>
-                    <div style={{ fontSize: '0.65rem', color: '#64748b' }}>BALANCE</div>
+                    <div style={{ color: '#60a5fa', fontWeight: 700 }}>{financeSummary.net_balance.toLocaleString()}</div>
+                    <div style={{ fontSize: '0.65rem', color: '#64748b' }}>BALANCE (UZS)</div>
                   </div>
                 </div>
               </div>

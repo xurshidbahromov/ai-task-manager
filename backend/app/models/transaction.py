@@ -8,7 +8,6 @@ class Transaction(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     amount = Column(Float, nullable=False)
-    currency = Column(String, default="USD") # "USD" or "UZS"
     type = Column(String, nullable=False) # "income" or "expense"
     description = Column(String, nullable=False)
     category = Column(String, default="General") # AI inferred

@@ -24,7 +24,6 @@ def create_transaction(
     
     new_trans = Transaction(
         amount=trans_data.amount,
-        currency=trans_data.currency,
         type=trans_data.type,
         description=trans_data.description,
         category=category,
@@ -51,8 +50,7 @@ def get_finance_summary(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Get total income, expense, and balance (converts everything to a rough USD estimate for summary).
-    EXCHANGE RATE: 10000 UZS = 1 USD (Approx for demo simplicity)
+    Get total income, expense, and balance (Legacy: Assumes all in UZS now).
     """
     transactions = db.query(Transaction).filter(Transaction.owner_id == current_user.id).all()
     
@@ -60,18 +58,13 @@ def get_finance_summary(
     total_expense = 0.0
     
     for t in transactions:
-        # Normalize to USD
-        amount_usd = t.amount
-        if t.currency == "UZS":
-            amount_usd = t.amount / 12800 # Approx exchange rate
-            
         if t.type == "income":
-            total_income += amount_usd
+            total_income += t.amount
         else:
-            total_expense += amount_usd
+            total_expense += t.amount
     
     return {
-        "total_income": round(total_income, 2),
-        "total_expense": round(total_expense, 2),
-        "net_balance": round(total_income - total_expense, 2)
+        "total_income": total_income,
+        "total_expense": total_expense,
+        "net_balance": total_income - total_expense
     }

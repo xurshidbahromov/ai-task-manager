@@ -4,7 +4,6 @@ from datetime import datetime
 
 class TransactionBase(BaseModel):
     amount: float
-    currency: str
     type: str
     description: str
 
