@@ -14,9 +14,13 @@ class TaskUpdate(BaseModel):
     description: Optional[str] = None
     is_completed: Optional[bool] = None
 
+from datetime import datetime
+
 class TaskResponse(TaskBase):
     id: int
     owner_id: int
+    created_at: datetime
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

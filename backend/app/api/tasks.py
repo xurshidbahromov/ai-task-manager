@@ -31,9 +31,9 @@ def get_tasks(
 ):
     """
     Get all tasks for the authenticated user only.
-    Access Control: Users cannot see tasks belonging to others.
+    Sorted by newest first.
     """
-    return db.query(Task).filter(Task.owner_id == current_user.id).all()
+    return db.query(Task).filter(Task.owner_id == current_user.id).order_by(Task.created_at.desc()).all()
 
 @router.get("/{task_id}", response_model=TaskResponse)
 def get_task(
