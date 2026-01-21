@@ -1,0 +1,11 @@
+{
+    "name": "aether-app",
+    "version": "1.0.0",
+    "scripts": {
+        "build": "cd frontend && npm install && npm run build",
+        "dev": "cd frontend && npm run dev"
+    },
+    "devDependencies": {
+        "vercel": "^32.0.0"
+    }
+}

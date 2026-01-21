@@ -184,7 +184,7 @@ function App() {
 
   // Combine and sort items just before rendering
   const allItems = [
-    ...tasks.map(t => ({ ...t, itemType: 'task' })),
+    ...(Array.isArray(tasks) ? tasks : []).map(t => ({ ...t, itemType: 'task' })),
     ...transactions.map(t => ({ ...t, itemType: 'transaction' }))
   ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
@@ -267,19 +267,10 @@ function App() {
                 <Flame size={12} color="#fbbf24" fill="#fbbf24" /> {user?.streak || 0}
               </div>
             </div>
-            <div className="profile-avatar" style={{ width: 40, height: 40, margin: 0, fontSize: '1rem' }}>
+            <div className="profile-avatar header-avatar" style={{ margin: 0 }}>
               {user?.email[0].toUpperCase()}
             </div>
           </motion.div>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleLogout}
-            className="delete-btn"
-            style={{ opacity: 1, borderRadius: '1rem', background: 'rgba(255,255,255,0.05)' }}
-          >
-            <LogOut size={18} />
-          </motion.button>
         </div>
       </header>
 
