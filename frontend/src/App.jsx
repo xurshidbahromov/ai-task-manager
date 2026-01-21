@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, Trash2, CheckCircle, Circle, LogOut } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, Trash2, Check, LogOut, Loader2, Mail, Lock, Sparkles } from 'lucide-react';
 
 const API_URL = 'http://localhost:8000';
 
@@ -13,6 +14,7 @@ function App() {
   const [newTask, setNewTask] = useState('');
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (token) {
@@ -46,6 +48,7 @@ function App() {
   const handleAuth = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
     const endpoint = isLogin ? '/auth/login' : '/auth/signup';
 
     try {
@@ -60,10 +63,12 @@ function App() {
       } else {
         await axios.post(`${API_URL}${endpoint}`, { email, password });
         setIsLogin(true);
-        setError('Account created! Please login.');
+        setError('Account created! Now enter your credentials.');
       }
     } catch (err) {
-      setError(err.response?.data?.detail || 'Authentication failed');
+      setError(err.response?.data?.detail || 'Something went wrong');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -76,7 +81,7 @@ function App() {
 
   const addTask = async (e) => {
     e.preventDefault();
-    if (!newTask) return;
+    if (!newTask.trim()) return;
     try {
       const res = await axios.post(`${API_URL}/tasks/`,
         { title: newTask },
@@ -114,94 +119,150 @@ function App() {
 
   if (!token) {
     return (
-      <div className="auth-container">
-        <h1>{isLogin ? 'Login' : 'Sign Up'}</h1>
-        {error && <p style={{ color: '#ef4444', marginBottom: '1rem' }}>{error}</p>}
-        <form onSubmit={handleAuth}>
-          <div className="input-group">
-            <label>Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+      <div className="auth-wrapper">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="auth-card"
+        >
+          <h1>{isLogin ? 'Welcome' : 'Join Us'}</h1>
+          <p className="subtitle">{isLogin ? 'Login to manage your goals' : 'Start your AI-powered journey'}</p>
+
+          {error && <motion.p
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{ color: '#f87171', marginBottom: '1.5rem', fontSize: '0.9rem' }}>{error}</motion.p>}
+
+          <form onSubmit={handleAuth}>
+            <div className="input-field">
+              <label><Mail size={14} style={{ marginRight: 6 }} /> Email Address</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="adam@obsidian.com"
+                required
+              />
+            </div>
+            <div className="input-field">
+              <label><Lock size={14} style={{ marginRight: 6 }} /> Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+              />
+            </div>
+            <button type="submit" className="btn-primary" disabled={loading}>
+              {loading ? <Loader2 className="animate-spin mx-auto" size={20} /> : (isLogin ? 'Login' : 'Create Account')}
+            </button>
+          </form>
+
+          <div style={{ marginTop: '2rem', textAlign: 'center' }}>
+            <span style={{ color: '#64748b' }}>{isLogin ? "New here?" : "Joined already?"}</span>
+            <button
+              className="text-btn"
+              style={{ background: 'none', color: '#60a5fa', border: 'none', padding: '0 0.5rem', cursor: 'pointer', fontWeight: 600 }}
+              onClick={() => setIsLogin(!isLogin)}
+            >
+              {isLogin ? 'Setup Account' : 'Direct Login'}
+            </button>
           </div>
-          <div className="input-group">
-            <label>Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <button type="submit">{isLogin ? 'Enter' : 'Create Account'}</button>
-        </form>
-        <p style={{ marginTop: '1.5rem', fontSize: '0.875rem' }}>
-          {isLogin ? "Don't have an account?" : "Already have an account?"}
-          <button
-            style={{ background: 'none', color: '#3b82f6', width: 'auto', padding: '0 0.5rem' }}
-            onClick={() => setIsLogin(!isLogin)}
-          >
-            {isLogin ? 'Sign Up' : 'Login'}
-          </button>
-        </p>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div style={{ paddingBottom: '5rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h1 style={{ margin: 0 }}>AI Task Manager</h1>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <span style={{ color: '#94a3b8' }}>{user?.email}</span>
-          <button onClick={handleLogout} style={{ width: 'auto', background: '#334155' }}>
-            <LogOut size={20} />
-          </button>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <header className="header">
+        <div className="logo-text">
+          <span style={{ color: '#60a5fa' }}>AI</span> Agent.
         </div>
-      </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{user?.email.split('@')[0]}</div>
+            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{user?.email}</div>
+          </div>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleLogout}
+            className="delete-btn"
+            style={{ opacity: 1, borderRadius: '1rem', background: 'rgba(255,255,255,0.05)' }}
+          >
+            <LogOut size={18} />
+          </motion.button>
+        </div>
+      </header>
 
-      <form onSubmit={addTask} style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+      <motion.form
+        layout
+        onSubmit={addTask}
+        className="add-task-form"
+      >
         <input
-          style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', background: '#1e293b', border: '1px solid #334155', color: 'white' }}
           type="text"
-          placeholder="What needs to be done?"
+          placeholder="I need to..."
           value={newTask}
           onChange={(e) => setNewTask(e.target.value)}
         />
-        <button type="submit" style={{ width: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Plus size={20} /> Add Task
+        <button type="submit" className="add-btn">
+          <Plus size={20} /> Add
         </button>
-      </form>
+      </motion.form>
 
-      <div className="task-list">
-        {tasks.map(task => (
-          <div key={task.id} className={`task-item ${task.is_completed ? 'completed' : ''}`}>
-            <div className="task-info">
-              <button
-                onClick={() => toggleTask(task.id, task.is_completed)}
-                style={{ background: 'none', width: 'auto', padding: 0 }}
-              >
-                {task.is_completed ? <CheckCircle color="#10b981" /> : <Circle color="#94a3b8" />}
-              </button>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                <span className="task-title">{task.title}</span>
-                <span className={`priority-badge ${task.priority.toLowerCase()}`}>
-                  AI: {task.priority}
-                </span>
+      <div className="task-grid">
+        <AnimatePresence mode='popLayout'>
+          {tasks.map(task => (
+            <motion.div
+              key={task.id}
+              layout
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className={`task-card ${task.is_completed ? 'completed' : ''}`}
+            >
+              <div className="task-main">
+                <button
+                  onClick={() => toggleTask(task.id, task.is_completed)}
+                  className={`check-btn ${task.is_completed ? 'done' : ''}`}
+                >
+                  {task.is_completed && <Check size={16} color="white" />}
+                </button>
+                <div className="task-content">
+                  <div className="title">{task.title}</div>
+                  <div className="ai-meta">
+                    <span className={`priority-tag ${task.priority.toLowerCase()}`}>
+                      <Sparkles size={10} style={{ marginRight: 4 }} />
+                      {task.priority}
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="task-actions">
-              <button className="delete" onClick={() => deleteTask(task.id)}>
+              <button className="delete-btn" onClick={() => deleteTask(task.id)}>
                 <Trash2 size={18} />
               </button>
-            </div>
-          </div>
-        ))}
+            </motion.div>
+          ))}
+        </AnimatePresence>
+
+        {tasks.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.3 }}
+            style={{ textAlign: 'center', padding: '4rem' }}
+          >
+            <p>Your task list is empty. Start by adding one!</p>
+          </motion.div>
+        )}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
