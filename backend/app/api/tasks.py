@@ -5,6 +5,7 @@ from app.api.deps import get_db, get_current_user
 from app.models.user import User
 from app.models.task import Task
 from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate
+from app.utils.ai_service import analyze_task_priority
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
@@ -18,7 +19,14 @@ def create_task(
     Create a new task. Protected: Requires valid JWT.
     The task is automatically linked to the authenticated user.
     """
-    new_task = Task(**task_data.model_dump(), owner_id=current_user.id)
+    # AI Analysis: Predict priority based on title and description
+    predicted_priority = analyze_task_priority(task_data.title, task_data.description)
+    
+    new_task = Task(
+        **task_data.model_dump(exclude={"priority"}), 
+        priority=predicted_priority,
+        owner_id=current_user.id
+    )
     db.add(new_task)
     db.commit()
     db.refresh(new_task)
