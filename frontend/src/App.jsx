@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Check, LogOut, Loader2, Mail, Lock, Sparkles, Wand2 } from 'lucide-react';
+import { Plus, Trash2, Check, LogOut, Loader2, Mail, Lock, Sparkles, Wand2, X, Flame, User as UserIcon } from 'lucide-react';
 
 const API_URL = 'http://localhost:8000';
 
@@ -15,6 +15,7 @@ function App() {
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
 
   useEffect(() => {
     if (token) {
@@ -195,11 +196,22 @@ function App() {
         <div className="logo-text">
           <span style={{ color: '#60a5fa' }}>AI</span> Agent.
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{user?.email.split('@')[0]}</div>
-            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{user?.email}</div>
-          </div>
+        <div className="user-profile">
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            onClick={() => setShowProfile(true)}
+            style={{ textAlign: 'right', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.75rem' }}
+          >
+            <div>
+              <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{user?.email.split('@')[0]}</div>
+              <div style={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
+                <Flame size={12} color="#fbbf24" fill="#fbbf24" /> {user?.streak || 0}
+              </div>
+            </div>
+            <div className="profile-avatar" style={{ width: 40, height: 40, margin: 0, fontSize: '1rem' }}>
+              {user?.email[0].toUpperCase()}
+            </div>
+          </motion.div>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -313,6 +325,61 @@ function App() {
           </motion.div>
         )}
       </div>
+
+      <AnimatePresence>
+        {showProfile && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="profile-overlay"
+            onClick={() => setShowProfile(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="profile-card"
+              onClick={e => e.stopPropagation()}
+            >
+              <button className="close-btn" onClick={() => setShowProfile(false)}>
+                <X size={20} />
+              </button>
+
+              <div className="profile-avatar">
+                {user?.email[0].toUpperCase()}
+              </div>
+
+              <h2 style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>{user?.email.split('@')[0]}</h2>
+              <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>{user?.email}</p>
+
+              <div className="streak-badge">
+                <Flame size={20} fill="#fbbf24" />
+                <span>{user?.streak || 0} DAY STREAK</span>
+              </div>
+
+              <div style={{ marginTop: '2.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.5rem', borderRadius: '1.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#60a5fa' }}>{tasks.length}</div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase' }}>Active Tasks</div>
+                </div>
+                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.5rem', borderRadius: '1.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#10b981' }}>{tasks.filter(t => t.is_completed).length}</div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase' }}>Completed</div>
+                </div>
+              </div>
+
+              <button
+                onClick={handleLogout}
+                className="btn-primary"
+                style={{ marginTop: '2rem', background: 'rgba(239, 68, 68, 0.1)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.2)' }}
+              >
+                Sign Out
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
