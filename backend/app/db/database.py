@@ -2,14 +2,22 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 import os
 from dotenv import load_dotenv
-
 load_dotenv()
 
+# Vercel Compatibility:
+# 1. If DATABASE_URL is missing, default to a temporary SQLite file in /tmp (writable in serverless).
+# 2. If running locally, it uses .env value or falls back to local file.
 DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    # Check if running in Vercel (usually has /var/task or similar, but /tmp is safe fallback)
+    DATABASE_URL = "sqlite:////tmp/ai_tasks.db" 
 
-# SQLite uchun check_same_thread: False kerak
+connect_args = {}
+if "sqlite" in DATABASE_URL:
+    connect_args = {"check_same_thread": False}
+
 engine = create_engine(
-    DATABASE_URL, connect_args={"check_same_thread": False}
+    DATABASE_URL, connect_args=connect_args
 )
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
