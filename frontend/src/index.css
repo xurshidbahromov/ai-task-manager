@@ -64,6 +64,7 @@ body {
   margin-bottom: 0.5rem;
   background: linear-gradient(to right, #60a5fa, #a78bfa);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -299,6 +300,49 @@ body {
 
 .task-card:hover .delete-btn {
   opacity: 1;
+}
+
+.magic-btn {
+  background: rgba(139, 92, 246, 0.1) !important;
+  color: #a78bfa !important;
+  border: 1px solid rgba(139, 92, 246, 0.2) !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 12px !important;
+  cursor: pointer;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+
+.magic-btn:hover {
+  background: #8b5cf6 !important;
+  color: white !important;
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+}
+
+.subtasks-container {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  width: 100%;
+}
+
+.subtask-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.subtask-dot {
+  width: 6px;
+  height: 6px;
+  background: #8b5cf6;
+  border-radius: 50%;
 }
 
 .delete-btn:hover {

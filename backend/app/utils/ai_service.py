@@ -1,16 +1,8 @@
-import re
+import json
 
 def analyze_task_priority(title: str, description: str = "") -> str:
-    """
-    A rule-based AI simulation that analyzes task text to predict priority.
-    In a real-world scenario, this would call an LLM (Gemini/OpenAI) 
-    or a trained NLP model.
-    """
     text = (title + " " + (description or "")).lower()
-    
-    # High Priority Keywords
     high_keywords = ["urgent", "asap", "deadline", "important", "fix", "critical", "today", "boss"]
-    # Low Priority Keywords
     low_keywords = ["later", "maybe", "someday", "wishlist", "ignore", "low"]
     
     if any(word in text for word in high_keywords):
@@ -20,12 +12,28 @@ def analyze_task_priority(title: str, description: str = "") -> str:
     else:
         return "Medium"
 
-def get_ai_suggestions(title: str) -> str:
+def decompose_task(title: str) -> str:
     """
-    Simulates AI giving a suggestion based on the task title.
+    AI Logic to break down a main task into 3 actionable sub-steps.
     """
-    if "email" in title.lower():
-        return "AI Suggestion: Keep it brief and clear."
-    if "code" in title.lower() or "bug" in title.lower():
-        return "AI Suggestion: Don't forget to write tests!"
-    return "AI Suggestion: Break this into smaller sub-tasks for better focus."
+    title_low = title.lower()
+    
+    strategies = {
+        "website": ["Define sitemap", "Design UI in Figma", "Setup React frontend", "Connect Backend API"],
+        "app": ["Market research", "Wireframe concepts", "MVP development", "Alpha testing"],
+        "report": ["Gather data", "Draft outline", "Write executive summary", "Final review"],
+        "book": ["Outline chapters", "Write first draft", "Self-editing", "Find a publisher"],
+        "email": ["Draft response", "Check tone & grammar", "Attach files", "Hit send"],
+        "code": ["Understand requirements", "Write unit tests", "Implement logic", "Refactor"],
+        "bug": ["Reproduce the issue", "Identify root cause", "Implement fix", "Verify fix"],
+        "exam": ["Review lecture notes", "Create practice quiz", "Study group session", "Rest well"],
+        "travel": ["Book flights", "Reserve accommodation", "Pack essentials", "Plan itinerary"],
+    }
+    
+    # Simple keyword matching for decomposition
+    for key, steps in strategies.items():
+        if key in title_low:
+            return json.dumps(steps)
+            
+    # Default strategy
+    return json.dumps(["Phase 1: Research", "Phase 2: Execution", "Phase 3: Final Review"])

@@ -10,7 +10,8 @@ class Task(Base):
     title = Column(String, index=True, nullable=False)
     description = Column(String, nullable=True)
     is_completed = Column(Boolean, default=False)
-    priority = Column(String, default="Medium") # AI will predict this: Low, Medium, High
+    priority = Column(String, default="Medium")
+    subtasks = Column(String, nullable=True) # JSON string of steps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     owner_id = Column(Integer, ForeignKey("users.id"))

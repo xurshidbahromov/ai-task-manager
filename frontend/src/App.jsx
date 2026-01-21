@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Check, LogOut, Loader2, Mail, Lock, Sparkles } from 'lucide-react';
+import { Plus, Trash2, Check, LogOut, Loader2, Mail, Lock, Sparkles, Wand2 } from 'lucide-react';
 
 const API_URL = 'http://localhost:8000';
 
@@ -117,6 +117,17 @@ function App() {
     }
   };
 
+  const decomposeTask = async (id) => {
+    try {
+      const res = await axios.post(`${API_URL}/tasks/${id}/decompose`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setTasks(tasks.map(t => t.id === id ? res.data : t));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   if (!token) {
     return (
       <div className="auth-wrapper">
@@ -227,27 +238,67 @@ function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, x: -20 }}
               className={`task-card ${task.is_completed ? 'completed' : ''}`}
+              style={{ flexDirection: 'column', alignItems: 'flex-start' }}
             >
-              <div className="task-main">
-                <button
-                  onClick={() => toggleTask(task.id, task.is_completed)}
-                  className={`check-btn ${task.is_completed ? 'done' : ''}`}
-                >
-                  {task.is_completed && <Check size={16} color="white" />}
-                </button>
-                <div className="task-content">
-                  <div className="title">{task.title}</div>
-                  <div className="ai-meta">
-                    <span className={`priority-tag ${task.priority.toLowerCase()}`}>
-                      <Sparkles size={10} style={{ marginRight: 4 }} />
-                      {task.priority}
-                    </span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                <div className="task-main">
+                  <button
+                    onClick={() => toggleTask(task.id, task.is_completed)}
+                    className={`check-btn ${task.is_completed ? 'done' : ''}`}
+                  >
+                    {task.is_completed && <Check size={16} color="white" />}
+                  </button>
+                  <div className="task-content">
+                    <div className="title">{task.title}</div>
+                    <div className="ai-meta">
+                      <span className={`priority-tag ${task.priority.toLowerCase()}`}>
+                        <Sparkles size={10} style={{ marginRight: 4 }} />
+                        {task.priority}
+                      </span>
+                    </div>
                   </div>
                 </div>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  {!task.subtasks && (
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className="magic-btn"
+                      onClick={() => decomposeTask(task.id)}
+                      title="AI Strategy"
+                    >
+                      <Wand2 size={18} />
+                    </motion.button>
+                  )}
+                  <button className="delete-btn" onClick={() => deleteTask(task.id)}>
+                    <Trash2 size={18} />
+                  </button>
+                </div>
               </div>
-              <button className="delete-btn" onClick={() => deleteTask(task.id)}>
-                <Trash2 size={18} />
-              </button>
+
+              {task.subtasks && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="subtasks-container"
+                >
+                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#8b5cf6', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Sparkles size={12} /> AI STRATEGY
+                  </div>
+                  {JSON.parse(task.subtasks).map((step, idx) => (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.1 }}
+                      className="subtask-item"
+                    >
+                      <div className="subtask-dot" />
+                      {step}
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
             </motion.div>
           ))}
         </AnimatePresence>
