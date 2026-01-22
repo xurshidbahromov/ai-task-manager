@@ -1,16 +1,25 @@
 {
+    "functions": {
+        "server/index.py": {
+            "runtime": "@vercel/python"
+        }
+    },
     "rewrites": [
         {
+            "source": "/api",
+            "destination": "server/index.py"
+        },
+        {
             "source": "/api/(.*)",
-            "destination": "api/index.py"
+            "destination": "server/index.py"
         },
         {
             "source": "/assets/(.*)",
-            "destination": "frontend/dist/assets/$1"
+            "destination": "/frontend/dist/assets/$1"
         },
         {
             "source": "/((?!api|assets).*)",
-            "destination": "frontend/dist/index.html"
+            "destination": "/frontend/dist/index.html"
         }
     ]
 }
