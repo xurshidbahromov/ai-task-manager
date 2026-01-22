@@ -2,7 +2,7 @@
     "name": "aether-app",
     "version": "1.0.0",
     "scripts": {
-        "build": "cd frontend && npm install && npm run build",
+        "build": "cd frontend && npm install && npm run build && cp -r dist/* ../",
         "dev": "cd frontend && npm run dev"
     },
     "devDependencies": {
