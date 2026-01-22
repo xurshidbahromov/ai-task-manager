@@ -1,8 +1,9 @@
 import sys
 import os
 
-# Add the project root to sys.path so 'backend' can be imported
+# Loyiha ildizini sys.path ga qo'shish
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(project_root)
+if project_root not in sys.path:
+    sys.path.append(project_root)
 
 from backend.app.main import app

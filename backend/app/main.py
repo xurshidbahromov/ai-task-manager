@@ -23,8 +23,6 @@ app = FastAPI(
     root_path="/api" if os.getenv("VERCEL") == "1" else ""
 )
 
-print(f"Backend starting... VERCEL={os.getenv('VERCEL')}, DATABASE_URL={os.getenv('DATABASE_URL')[:15]}...")
-
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
