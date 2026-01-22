@@ -1,16 +1,17 @@
 import sys
 import os
 
-# Get project root
+# Get current directory of index.py (which is /api)
 current_dir = os.path.dirname(os.path.abspath(__file__))
+# Get the root of the project
 project_root = os.path.dirname(current_dir)
 
-# Add project root to path
-sys.path.append(project_root)
-# Add 'backend' directory to path so 'app' module can be found as a top-level package
-sys.path.append(os.path.join(project_root, 'backend'))
+# Add the root directory to sys.path
+if project_root not in sys.path:
+    sys.path.append(project_root)
 
-from app.main import app
+# Import the FastAPI app instance from backend.app.main
+from backend.app.main import app
 
 # Vercel Serverless Function Entry Point
 # It expects the ASGI app to be available

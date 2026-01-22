@@ -18,7 +18,10 @@ import os
 if "sqlite" in os.getenv("DATABASE_URL", "") and "/tmp" not in os.getenv("DATABASE_URL", ""):
     Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="AI Task Manager API")
+app = FastAPI(
+    title="AI Task Manager API",
+    root_path="/api" if os.getenv("VERCEL") == "1" else ""
+)
 
 # Enable CORS
 app.add_middleware(
