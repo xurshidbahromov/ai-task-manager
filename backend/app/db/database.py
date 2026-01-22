@@ -9,10 +9,12 @@ load_dotenv()
 # 2. If running locally, it uses .env value or falls back to local file.
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Vercel compatibility: Force /tmp for SQLite because the root is read-only
-if os.getenv("VERCEL") == "1" or not DATABASE_URL:
-    if not DATABASE_URL or "sqlite" in DATABASE_URL:
-        DATABASE_URL = "sqlite:////tmp/ai_tasks.db"
+# Vercel compatibility: 
+if os.getenv("VERCEL") == "1":
+    if not DATABASE_URL:
+        DATABASE_URL = "sqlite:///:memory:"
+    elif DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 connect_args = {}
 if DATABASE_URL and "sqlite" in DATABASE_URL:
