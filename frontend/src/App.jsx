@@ -3,7 +3,7 @@ import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, Check, LogOut, Loader2, Mail, Lock, Sparkles, Wand2, X, Flame, User as UserIcon, DollarSign, TrendingUp, TrendingDown, ArrowRightLeft } from 'lucide-react';
 
-const API_URL = 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:8000' : '/api');
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
