@@ -2,8 +2,26 @@ import json
 
 def analyze_task_priority(title: str, description: str = "") -> str:
     text = (title + " " + (description or "")).lower()
-    high_keywords = ["urgent", "asap", "deadline", "important", "fix", "critical", "today", "boss", "must", "emergency"]
-    low_keywords = ["later", "maybe", "someday", "wishlist", "ignore", "low"]
+    
+    # Kengaytirilgan yuqori ustuvorlik kalit so'zlari
+    high_keywords = [
+        # English
+        "urgent", "asap", "deadline", "important", "fix", "critical", "today", "boss", "must", "emergency",
+        "immediate", "priority", "alert", "required", "mandatory", "essential", "vital", "crucial", "pressing",
+        # O'zbekcha
+        "shoshilinch", "muhim", "bugun", "shart", "tezda", "darhol", "muammo", "zudlik", "darrov", "asosiy",
+        "zarur", "majburiy", "kechiktirib", "dolzarb", "jiddiy", "tezkor"
+    ]
+    
+    # Kengaytirilgan past ustuvorlik kalit so'zlari
+    low_keywords = [
+        # English
+        "later", "maybe", "someday", "wishlist", "ignore", "low", "eventually", "optional", "whenever",
+        "backlog", "future", "minor", "trivial", "sometime",
+        # O'zbekcha
+        "keyinroq", "balki", "qachondir", "ixtiyoriy", "past", "vaqti kelganda", "xohishga ko'ra", "imkon bo'lganda",
+        "ahamiyatsiz", "ikkinchi darajali", "bo'sh vaqtda", "zararsiz"
+    ]
     
     if any(word in text for word in high_keywords):
         return "High"
